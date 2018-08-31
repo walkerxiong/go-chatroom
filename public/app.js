@@ -30,6 +30,7 @@ new Vue({
             if (this.newMsg != '') {
                 this.ws.send(
                     JSON.stringify({
+                        username:this.username,
                         message: $('<p>').html(this.newMsg).text() // Strip out html
                     }
                 ));
@@ -45,7 +46,10 @@ new Vue({
             this.username = $('<p>').html(this.username).text();
             this.joined = true;
             this.ws.send(
-                JSON.stringify({username:username,type:1})
+                JSON.stringify({
+                    username:this.username,
+                    message: "加入群聊"
+                })
             );
         },
 

@@ -8,7 +8,7 @@ type Message struct {
 	Timestamp time.Time
 }
 
-var Broadcast = make(chan Message)
+var Broadcast = make(chan Message, 100)
 
 func (msg Message) Send() {
 	Broadcast <- msg

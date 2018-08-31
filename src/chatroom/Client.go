@@ -6,7 +6,7 @@ import (
 )
 
 type Client struct {
-	conn       *websocket.Conn
+	Conn       *websocket.Conn
 	Username   string
 	status     int
 	OnlineTime time.Time
@@ -14,7 +14,7 @@ type Client struct {
 
 func InitClient(ws *websocket.Conn) (client *Client) {
 	client = &Client{
-		conn:       ws,
+		Conn:       ws,
 		Username:   "",
 		status:     1,
 		OnlineTime: time.Now(),

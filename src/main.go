@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gorilla/websocket"
+	"go-chatroom/src/chatroom"
 	"log"
 	"net/http"
 )
@@ -45,17 +46,17 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 
 	// Register our new client
 	client := chatroom.InitClient(ws)
-
+	chatroom.Join(client)
 	for {
 		// Read in a new message as JSON and map it to a Message object
 		var msg chatroom.Message
 		err := ws.ReadJSON(&msg)
 		if err != nil {
 			log.Printf("error: %v", err)
-			delete(clients, ws)
+			chatroom.OffLine(client)
 			break
 		}
-		if msg.Username != "" {
+		if msg.Username != "" && client.Username == "" {
 			client.Username = msg.Username
 		}
 		if msg.Message != "" {
@@ -71,11 +72,11 @@ func handleMessages() {
 		msg := <-chatroom.Broadcast
 		// Send it out to every client that is currently connected
 		for client := range chatroom.RoomClient {
-			err := client.WriteJSON(msg)
+			err := client.Conn.WriteJSON(msg)
 			if err != nil {
 				log.Printf("error: %v", err)
-				client.Close()
-				delete(clients, client)
+				client.Conn.Close()
+				chatroom.OffLine(client)
 			}
 		}
 	}
