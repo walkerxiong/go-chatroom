@@ -3,8 +3,8 @@ package chatroom
 import "time"
 
 type Message struct {
-	Username  string
-	Message   string
+	Username  string `json:"username"`
+	Message   string `json:"message"`
 	Timestamp time.Time
 }
 

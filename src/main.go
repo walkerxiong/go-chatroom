@@ -4,10 +4,7 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
-	"time"
 )
-
-var clients = make(map[*websocket.Conn]bool) // connected clients
 
 // Configure the upgrader
 var upgrader = websocket.Upgrader{
@@ -47,20 +44,24 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	defer ws.Close()
 
 	// Register our new client
-	chatroom.InitClinet(ws)
+	client := chatroom.InitClient(ws)
 
 	for {
-		var msg Message
 		// Read in a new message as JSON and map it to a Message object
+		var msg chatroom.Message
 		err := ws.ReadJSON(&msg)
 		if err != nil {
 			log.Printf("error: %v", err)
 			delete(clients, ws)
 			break
 		}
-		msg.Timestamp = time.Now()
-		// Send the newly received message to the broadcast channel
-		broadcast <- msg
+		if msg.Username != "" {
+			client.Username = msg.Username
+		}
+		if msg.Message != "" {
+			msg.Send()
+		}
+
 	}
 }
 
@@ -69,7 +70,7 @@ func handleMessages() {
 		// Grab the next message from the broadcast channel
 		msg := <-chatroom.Broadcast
 		// Send it out to every client that is currently connected
-		for client := range clients {
+		for client := range chatroom.RoomClient {
 			err := client.WriteJSON(msg)
 			if err != nil {
 				log.Printf("error: %v", err)
