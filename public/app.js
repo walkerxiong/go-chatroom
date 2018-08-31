@@ -5,7 +5,6 @@ new Vue({
         ws: null, // Our websocket
         newMsg: '', // Holds new messages to be sent to the server
         chatContent: '', // A running list of chat messages displayed on the screen
-        email: null, // Email address used for grabbing an avatar
         username: null, // Our username
         joined: false // True if email and username have been filled in
     },
@@ -15,8 +14,7 @@ new Vue({
         this.ws = new WebSocket('ws://' + window.location.host + '/ws');
         this.ws.addEventListener('message', function(e) {
             var msg = JSON.parse(e.data);
-            self.chatContent += '<div class="chip">'
-                    + '<img src="' + self.gravatarURL(msg.email) + '">' // Avatar
+            self.chatContent +=  '<div class="chip">'
                     + msg.username
                 + '</div>'
                 + emojione.toImage(msg.message) + '<br/>'; // Parse emojis
@@ -31,8 +29,6 @@ new Vue({
             if (this.newMsg != '') {
                 this.ws.send(
                     JSON.stringify({
-                        email: this.email,
-                        username: this.username,
                         message: $('<p>').html(this.newMsg).text() // Strip out html
                     }
                 ));
@@ -41,17 +37,15 @@ new Vue({
         },
 
         join: function () {
-            if (!this.email) {
-                Materialize.toast('You must enter an email', 2000);
-                return
-            }
             if (!this.username) {
                 Materialize.toast('You must choose a username', 2000);
                 return
             }
-            this.email = $('<p>').html(this.email).text();
             this.username = $('<p>').html(this.username).text();
             this.joined = true;
+            this.ws.send(
+                JSON.stringify({username:username,type:1})
+            );
         },
 
         gravatarURL: function(email) {
