@@ -11,5 +11,6 @@ type Message struct {
 var Broadcast = make(chan Message, 100)
 
 func (msg Message) Send() {
+	msg.Timestamp = time.Now()
 	Broadcast <- msg
 }

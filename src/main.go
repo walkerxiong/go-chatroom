@@ -24,9 +24,7 @@ func main() {
 	// Configure websocket route
 	http.HandleFunc("/ws", handleConnections)
 
-	// Start listening for incoming chat messages
-	go handleMessages()
-
+	go chatroom.BroadcastMsg()
 	// Start the server on localhost port 8000 and log any errors
 	log.Println("http server started on :8000")
 	err := http.ListenAndServe(":8000", nil)
@@ -41,43 +39,9 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// Make sure we close the connection when the function returns
-	defer ws.Close()
 
 	// Register our new client
 	client := chatroom.InitClient(ws)
 	chatroom.Join(client)
-	for {
-		// Read in a new message as JSON and map it to a Message object
-		var msg chatroom.Message
-		err := ws.ReadJSON(&msg)
-		if err != nil {
-			log.Printf("error: %v", err)
-			chatroom.OffLine(client)
-			break
-		}
-		if msg.Username != "" && client.Username == "" {
-			client.Username = msg.Username
-		}
-		if msg.Message != "" {
-			msg.Send()
-		}
 
-	}
-}
-
-func handleMessages() {
-	for {
-		// Grab the next message from the broadcast channel
-		msg := <-chatroom.Broadcast
-		// Send it out to every client that is currently connected
-		for client := range chatroom.RoomClient {
-			err := client.Conn.WriteJSON(msg)
-			if err != nil {
-				log.Printf("error: %v", err)
-				client.Conn.Close()
-				chatroom.OffLine(client)
-			}
-		}
-	}
 }
