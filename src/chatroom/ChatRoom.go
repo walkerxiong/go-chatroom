@@ -9,6 +9,8 @@ func Join(client *Client) {
 }
 
 func OffLine(client *Client) {
+	// 发送下线消息
+	Message{Username: client.Username, Message: "刚刚下线了..."}.Send()
 	client.Conn.Close()
 	delete(RoomClient, client)
 }
