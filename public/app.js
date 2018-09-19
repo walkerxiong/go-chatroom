@@ -10,7 +10,6 @@ new Vue({
     },
 
     created: function() {
-        var self = this;
     },
 
     methods: {
@@ -26,13 +25,14 @@ new Vue({
         },
 
         join: function () {
+            var self = this;
+            this.username = $('<p>').html(this.username).text();
             if (!this.username) {
                 Materialize.toast('You must choose a username', 2000);
                 return
             }
-            this.username = $('<p>').html(this.username).text();
-            this.ws = new WebSocket('ws://' + window.location.host + '/ws?usernam='+this.username);
-
+            this.joined = true
+            this.ws = new WebSocket('ws://' + window.location.host + '/ws?username='+this.username);
             this.ws.addEventListener('message', function(e) {
                 var msg = JSON.parse(e.data);
                 self.chatContent +=  '<div class="chip">'
@@ -43,7 +43,6 @@ new Vue({
                 var element = document.getElementById('chat-messages');
                 element.scrollTop = element.scrollHeight; // Auto scroll to the bottom
             });
-            this.joined = true;
         },
     }
 });

@@ -39,6 +39,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		username string
 	)
 	r.ParseForm()
+
 	if len(r.Form["username"]) > 0 {
 		username = r.Form["username"][0]
 	}

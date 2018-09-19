@@ -6,11 +6,12 @@ var RoomClient = make(map[*Client]bool) // connected clients
 
 func Join(client *Client) {
 	RoomClient[client] = true
+	client.SendMsgBody("加入群聊")
 }
 
 func OffLine(client *Client) {
 	// 发送下线消息
-	Message{Username: client.Username, Message: "刚刚下线了..."}.Send()
+	client.SendMsgBody("退出群聊")
 	client.Conn.Close()
 	delete(RoomClient, client)
 }
