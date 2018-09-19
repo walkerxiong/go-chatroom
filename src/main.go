@@ -35,13 +35,19 @@ func main() {
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
 	// Upgrade initial GET request to a websocket
+	var (
+		username string
+	)
+	r.ParseForm()
+	if len(r.Form["username"]) > 0 {
+		username = r.Form["username"][0]
+	}
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	// Register our new client
-	client := chatroom.InitClient(ws)
+	client := chatroom.InitClient(ws, username)
 	chatroom.Join(client)
 
 }

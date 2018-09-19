@@ -11,12 +11,13 @@ type Client struct {
 	Username   string
 	status     int
 	OnlineTime time.Time
+	UUID       string
 }
 
-func InitClient(ws *websocket.Conn) (client *Client) {
+func InitClient(ws *websocket.Conn, username string) (client *Client) {
 	client = &Client{
 		Conn:       ws,
-		Username:   "",
+		Username:   username,
 		status:     1,
 		OnlineTime: time.Now(),
 	}
