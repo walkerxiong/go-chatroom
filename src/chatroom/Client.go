@@ -37,12 +37,21 @@ func (client *Client) RecvMsg() {
 			OffLine(client)
 			break
 		}
-		if msg.Username != "" && client.Username == "" {
-			client.Username = msg.Username
-		}
 		if msg.Message != "" {
-			msg.Send()
+			client.SendMessage(msg)
 		}
 
 	}
+}
+
+func (client *Client) SendMsgBody(msgBody string) {
+	Broadcast <- Message{Username: client.Username, Timestamp: time.Now(), Message: msgBody}
+}
+
+func (client *Client) SendMessage(msg Message) {
+	if msg.Username == "" {
+		msg.Username = client.Username
+	}
+	msg.Timestamp = time.Now()
+	Broadcast <- msg
 }
