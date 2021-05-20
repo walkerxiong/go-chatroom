@@ -1,10 +1,12 @@
 package main
 
 import (
-	"github.com/gorilla/websocket"
-	"go-chatroom/src/chatroom"
 	"log"
 	"net/http"
+
+	"github.com/walkerxiong/go-chatroom/chatroom"
+
+	"github.com/gorilla/websocket"
 )
 
 // Configure the upgrader
@@ -18,7 +20,7 @@ var upgrader = websocket.Upgrader{
 
 func main() {
 	// Create a simple file server
-	fs := http.FileServer(http.Dir("../public"))
+	fs := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fs)
 
 	// Configure websocket route
