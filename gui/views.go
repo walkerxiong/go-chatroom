@@ -30,6 +30,7 @@ type OnlineListWidget struct {
 	w, h    int
 	name    string
 	friends []string
+	view    *gocui.View
 }
 
 func NewOnlineListWidget(x, y, w, h int) *OnlineListWidget {
@@ -53,6 +54,7 @@ func (online *OnlineListWidget) Layout(g *gocui.Gui) error {
 		}
 	}
 	v.Title = "Online users"
+	online.view = v
 	return nil
 }
 
@@ -60,6 +62,8 @@ type MessageBoxWidget struct {
 	x, y int
 	w, h int
 	name string
+	view *gocui.View
+	Msgs []string
 }
 
 func NewMessageBoxWidget(x, y, w, h int) *MessageBoxWidget {
@@ -72,6 +76,7 @@ func NewMessageBoxWidget(x, y, w, h int) *MessageBoxWidget {
 	}
 }
 
+// TODO: define message struct for diffrent color font
 func (msg *MessageBoxWidget) Layout(g *gocui.Gui) error {
 	v, err := g.SetView(msg.name, msg.x, msg.y, msg.x+msg.w, msg.y+msg.h)
 	if err != nil {
@@ -79,7 +84,12 @@ func (msg *MessageBoxWidget) Layout(g *gocui.Gui) error {
 			return err
 		}
 	}
+	v.Clear()
+	for _, m := range msg.Msgs {
+		fmt.Fprintf(v, "\033[30;1m%s\033[0m\n", m)
+	}
 	v.Title = "Messages"
+	msg.view = v
 	return nil
 }
 
@@ -88,6 +98,7 @@ type InputWidget struct {
 	w      int
 	name   string
 	editor InputEditor
+	view   *gocui.View
 }
 
 func NewInputWidget(x, y, w int) *InputWidget {
@@ -112,5 +123,6 @@ func (input *InputWidget) Layout(g *gocui.Gui) error {
 		g.SetCurrentView(input.name)
 	}
 	v.Title = "Input"
+	input.view = v
 	return nil
 }

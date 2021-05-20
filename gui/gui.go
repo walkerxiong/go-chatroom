@@ -1,16 +1,19 @@
 package gui
 
 import (
-	"log"
+	"strings"
 
 	"github.com/jroimartin/gocui"
 )
 
-type SendMessageFunc func(username string, message string) error
+type SendMessageFunc func(message string) error
 
 type App struct {
-	g           *gocui.Gui
-	SendMsgFunc SendMessageFunc
+	g             *gocui.Gui
+	SendMsgFunc   SendMessageFunc
+	onlineWidget  *OnlineListWidget
+	messageWidget *MessageBoxWidget
+	inputWidget   *InputWidget
 }
 
 func NewApp(f SendMessageFunc) (*App, error) {
@@ -22,27 +25,28 @@ func NewApp(f SendMessageFunc) (*App, error) {
 	g.SelFgColor = gocui.ColorRed
 
 	maxX, maxY := g.Size()
-	onlineWidget := NewOnlineListWidget(0, 0, maxX/4, 5*maxY/6)
-	messageWidget := NewMessageBoxWidget(maxX/4, 0, 3*maxX/4, 5*maxY/6)
-	inputWidget := NewInputWidget(0, 5*maxY/6, maxX-1)
+	app := &App{
+		g:             g,
+		SendMsgFunc:   f,
+		onlineWidget:  NewOnlineListWidget(0, 0, maxX/4, 5*maxY/6),
+		messageWidget: NewMessageBoxWidget(maxX/4, 0, 3*maxX/4, 5*maxY/6),
+		inputWidget:   NewInputWidget(0, 5*maxY/6, maxX-1),
+	}
 
-	g.SetManager(onlineWidget, messageWidget, inputWidget)
+	g.SetManager(app.onlineWidget, app.messageWidget, app.inputWidget)
 	g.InputEsc = true
 	g.Cursor = true
-	app := &App{
-		g:           g,
-		SendMsgFunc: f,
-	}
+
 	return app, nil
 }
 
 func (app *App) Run() error {
 	if err := app.g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
-		log.Panicln(err)
+		return err
 	}
 
 	if err := app.g.SetKeybinding(InputView, gocui.KeyEnter, gocui.ModNone, app.sendMsg); err != nil {
-		log.Panicln(err)
+		return err
 	}
 
 	if err := app.g.MainLoop(); err != nil && err != gocui.ErrQuit {
@@ -73,11 +77,18 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 // TODO: implement this
 func (app *App) sendMsg(g *gocui.Gui, v *gocui.View) error {
 	// get view contents
-
+	contents := app.inputWidget.view.Buffer()
 	// call app sendMsgFunc
-
+	app.SendMsgFunc(contents)
+	// write space to assign
+	size := app.messageWidget.w - len(contents)
+	if size > 0 {
+		contents = strings.Repeat(" ", size) + contents
+	}
 	// write to messge box widget
-
+	app.messageWidget.Msgs = append(app.messageWidget.Msgs, contents)
 	// clear contents
+	app.inputWidget.view.Clear()
+	app.inputWidget.view.SetCursor(0, 0)
 	return nil
 }

@@ -7,9 +7,14 @@ import (
 )
 
 func TestRun(t *testing.T) {
-	app, err := gui.NewApp()
+	f := func(msg string) error {
+		return nil
+	}
+	app, err := gui.NewApp(f)
 	if err != nil {
 		t.Fatal(err)
 	}
-	app.Run()
+	if err := app.Run(); err != nil {
+		t.Fatal(err)
+	}
 }
