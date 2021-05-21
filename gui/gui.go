@@ -1,9 +1,8 @@
 package gui
 
 import (
-	"strings"
-
 	"github.com/jroimartin/gocui"
+	"github.com/walkerxiong/go-chatroom/session"
 )
 
 type SendMessageFunc func(message string) error
@@ -14,25 +13,27 @@ type App struct {
 	onlineWidget  *OnlineListWidget
 	messageWidget *MessageBoxWidget
 	inputWidget   *InputWidget
+	user          *session.User
 }
 
-func NewApp(f SendMessageFunc) (*App, error) {
+func NewApp(u *session.User, f SendMessageFunc) (*App, error) {
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		return nil, err
 	}
 	g.Highlight = true
-	g.SelFgColor = gocui.ColorRed
+	g.SelFgColor = gocui.ColorGreen
 
 	maxX, maxY := g.Size()
 	app := &App{
 		g:             g,
 		SendMsgFunc:   f,
 		onlineWidget:  NewOnlineListWidget(0, 0, maxX/4, 5*maxY/6),
-		messageWidget: NewMessageBoxWidget(maxX/4, 0, 3*maxX/4, 5*maxY/6),
+		messageWidget: NewMessageBoxWidget(maxX/4, 0, 3*maxX/4, 5*maxY/6, u),
 		inputWidget:   NewInputWidget(0, 5*maxY/6, maxX-1),
+		user:          u,
 	}
-
+	app.onlineWidget.JoinUser(u.Name)
 	g.SetManager(app.onlineWidget, app.messageWidget, app.inputWidget)
 	g.InputEsc = true
 	g.Cursor = true
@@ -55,38 +56,32 @@ func (app *App) Run() error {
 	return nil
 }
 
-// TODO：收到信息
-func (app *App) ReceiveMsg(username string, msg string) {
-
+func (app *App) ReceiveMsg(msg session.Message) {
+	app.messageWidget.ReceiveMsg(msg)
 }
 
-// TODO: 用户上线
 func (app *App) SetUserOnline(username string) {
-
+	app.onlineWidget.JoinUser(username)
 }
 
-// TODO: 用户下线
 func (app *App) SetUserOffline(username string) {
-
+	app.onlineWidget.Offline(username)
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
 
-// TODO: implement this
 func (app *App) sendMsg(g *gocui.Gui, v *gocui.View) error {
 	// get view contents
 	contents := app.inputWidget.view.Buffer()
+	if contents == "" {
+		return nil
+	}
 	// call app sendMsgFunc
 	app.SendMsgFunc(contents)
-	// write space to assign
-	size := app.messageWidget.w - len(contents)
-	if size > 0 {
-		contents = strings.Repeat(" ", size) + contents
-	}
 	// write to messge box widget
-	app.messageWidget.Msgs = append(app.messageWidget.Msgs, contents)
+	app.messageWidget.SendMessage(contents)
 	// clear contents
 	app.inputWidget.view.Clear()
 	app.inputWidget.view.SetCursor(0, 0)
