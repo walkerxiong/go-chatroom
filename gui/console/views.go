@@ -1,4 +1,4 @@
-package gui
+package console
 
 import (
 	"fmt"
@@ -107,6 +107,7 @@ func (msg *MessageBoxWidget) Layout(g *gocui.Gui) error {
 		}
 	}
 	v.Clear()
+	v.Autoscroll = true
 	for _, m := range msg.Msgs {
 		// from current session
 		// write space to assign
